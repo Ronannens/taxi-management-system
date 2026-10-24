@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель управления | Taxi CRM</title>
+    <style>
+        :root {
+            --theme-primary: {{ theme_color }};
+            --bg-main: #f8fafc;
+            --sidebar-bg: #0f172a;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+        /* Улучшенная структура боковой панели */
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            color: #94a3b8;
+            min-height: 100vh;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.05);
+            padding: 30px 24px;
+        }
+        .sidebar-heading {
+            color: #f8fafc;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar hr {
+            border-color: #334155;
+            opacity: 0.4;
+        }
+        /* Основной контент */
+        .main-content {
+            padding: 40px;
+        }
+        .top-navbar {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 28px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+        }
+        /* Карточки и элементы управления */
+        .premium-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            padding: 30px;
+        }
+        .form-label-custom {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 6px;
+        }
+        .form-control-custom {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.92rem;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+        .form-control-custom:focus {
+            background: white;
+            border-color: var(--theme-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+            outline: none;
+        }
+        .form-control-sidebar {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #f8fafc;
+        }
+        .form-control-sidebar:focus {
+            background: #0f172a;
+            border-color: var(--theme-primary);
+            color: #f8fafc;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        /* Дизайн таблиц */
+        .table-container {
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .table {
+            margin-bottom: 0;
+        }
+        .table thead {
+            background-color: #f8fafc;
+        }
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table td {
+            padding: 16px 20px;
+            font-size: 0.92rem;
+            color: #334155;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .car-badge {
+            background: #e0e7ff;
+            color: #4338ca;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        /* Кастомный селектор цвета */
+        .theme-picker-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px #cbd5e1;
+            cursor: pointer;
+            overflow: hidden;
+            padding: 0;
+        }
+        .color-dot::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-dot::-webkit-color-swatch { border: none; }
+        
+        .btn-dynamic {
+            background: var(--theme-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: opacity 0.2s ease;
+        }
+        .btn-dynamic:hover {
+            opacity: 0.9;
+            color: white;
+        }
+        .alert-premium {
+            border-radius: 12px;
+            border: none;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
+        
+        <!-- ЛЕВАЯ ПАНЕЛЬ: Сайдбар -->
+        <div class="col-xl-3 col-md-4">
+            <div class="sidebar d-flex flex-column gap-4">
+                <div class="sidebar-heading">
+                    <span>🚖</span> Taxi CRM Premium
+                </div>
+                
+                <hr class="m-0">
+                
+                <div>
+                    <h6 class="form-label-custom text-white-50 mb-3">Поиск и Фильтры</h6>
+                    <div class="mb-3">
+                        <label class="form-label-custom text-muted small">Марка / Модель</label>
+                        <input type="text" id="searchInput" class="form-control form-control-custom form-control-sidebar" placeholder="Например: Toyota">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label-custom text-muted small">Цвет кузова</label>
+                        <input type="text" id="colorInput" class="form-control form-control-custom form-control-sidebar" placeholder="Например: Черный">
+                    </div>
+                </div>
+
+                {% if is_admin %}
+                    <!-- Формы только для Администратора -->
+                    <div class="flex-grow-1 d-flex flex-column gap-4">
+                        <div>
+                            <hr class="mt-0 mb-3">
+                            <h6 class="text-white fw-semibold mb-3" style="font-size: 0.9rem;">➕ Добавить автомобиль</h6>
+                            <form action="{{ url_for('add_car') }}" method="POST" class="d-flex flex-column gap-2">
+                                <input type="text" name="brand" class="form-control form-control-custom form-control-sidebar" placeholder="Марка" required>
+                                <input type="text" name="model" class="form-control form-control-custom form-control-sidebar" placeholder="Модель" required>
+                                <input type="text" name="plate" class="form-control form-control-custom form-control-sidebar" placeholder="Гос. номер" required>
+                                <input type="text" name="color" class="form-control form-control-custom form-control-sidebar" placeholder="Цвет" required>
+                                <input type="number" name="driver_id" class="form-control form-control-custom form-control-sidebar" placeholder="ID Водителя" required>
+                                <button type="submit" class="btn btn-dynamic btn-sm w-100 mt-1">Добавить авто</button>
+                            </form>
+                        </div>
+
+                        <div>
+                            <hr class="mt-0 mb-3">
+                            <h6 class="text-white fw-semibold mb-3" style="font-size: 0.9rem;">🚖 Новый водитель</h6>
+                            <form action="{{ url_for('add_driver') }}" method="POST" class="d-flex flex-column gap-2">
+                                <input type="text" name="name" class="form-control form-control-custom form-control-sidebar" placeholder="ФИО Водителя" required>
+                                <input type="text" name="phone" class="form-control form-control-custom form-control-sidebar" placeholder="Телефон" required>
+                                <input type="text" name="license" class="form-control form-control-custom form-control-sidebar" placeholder="Лицензия" required>
+                                <input type="text" name="rating" class="form-control form-control-custom form-control-sidebar" value="5.00" required>
+                                <button type="submit" class="btn btn-dynamic btn-sm w-100 mt-1">Оформить водителя</button>
+                            </form>
+                        </div>
+
+                        <div>
+                            <hr class="mt-0 mb-3">
+                            <h6 class="text-white fw-semibold mb-3" style="font-size: 0.9rem;">👤 Регистрация пассажира</h6>
+                            <form action="{{ url_for('add_passenger') }}" method="POST" class="d-flex flex-column gap-2">
+                                <input type="text" name="name" class="form-control form-control-custom form-control-sidebar" placeholder="Имя / Логин" required>
+                                <input type="text" name="phone" class="form-control form-control-custom form-control-sidebar" placeholder="Телефон" required>
+                                <input type="email" name="email" class="form-control form-control-custom form-control-sidebar" placeholder="Email (Необязательно)">
+                                                                <div class="form-check form-switch my-1">
+                                    <input class="form-check-input" type="checkbox" name="is_admin" id="isAdminCheck">
+                                    <label class="form-check-label text-white-50 small" for="isAdminCheck">Права админа</label>
+                                </div>
+                                <button type="submit" class="btn btn-dynamic btn-sm w-100">Создать аккаунт</button>
+                            </form>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Блок режима обычного клиента (пассажира) -->
+                    <div class="mt-auto bg-dark p-3 rounded-3 border border-secondary border-opacity-25">
+                        <div class="text-center text-warning mb-2" style="font-size: 1.5rem;">🔒</div>
+                        <div class="text-white fw-bold text-center small">Режим клиента</div>
+                        <p class="text-muted text-center mb-0 mt-1" style="font-size: 0.78rem;">Функции создания и удаления записей автопарка ограничены администрацией.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ ЧАСТЬ: Верхняя панель и Главный контент -->
+        <div class="col-xl-9 col-md-8">
+            <div class="main-content">
+                
+                <!-- Верхняя панель (Navbar) -->
+                <div class="top-navbar d-flex flex-sm-row flex-column justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fs-4">👋</span>
+                        <div>
+                            <div class="fw-bold" style="font-size: 1.05rem;">{{ user }}</div>
+                            <div class="text-muted small">
+                                Роль: {% if is_admin %}<span class="text-danger fw-semibold">Администратор</span>{% else %}<span class="text-success fw-semibold">Пассажир</span>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="theme-picker-wrapper">
+                            <span class="text-muted small fw-medium">Тема интерфейса:</span>
+                            <input type="color" id="themeColor" class="color-dot" value="{{ theme_color }}">
+                        </div>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm px-3 fw-bold rounded-3">Выйти</a>
+                    </div>
+                </div>
+
+                <!-- Вывод сообщений flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'danger' else 'danger text-white bg-danger' }} alert-premium alert-dismissible fade show mb-4" role="alert">
+                                ✨ {{ message }}
+                                <button type="button" class="btn-close {% if category == 'danger' %}btn-close-white{% endif %}" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Главная карточка с таблицей автопарка -->
+                <div class="premium-card">
+                    <h5 class="fw-bold mb-4 d-flex align-items-center justify-content-between">
+                        <span>Актуальный статус автопарка</span>
+                        <span class="badge bg-light text-dark border fw-normal" style="font-size: 0.8rem;" id="carsCounter">Машин: 0</span>
+                    </h5>
+                    
+                    <div class="table-container">
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Марка автомобиля</th>
+                                        <th>Модель</th>
+                                        <th>Государственный номер</th>
+                                        <th>Цвет кузова</th>
+                                        <th>Идентификатор водителя</th>
+                                        {% if is_admin %}<th class="text-end">Управление</th>{% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody id="carsTableBody">
+                                    <!-- Строки загружаются асинхронно через JavaScript ниже -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://jsdelivr.net"></script>
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const colorInput = document.getElementById('colorInput');
+    const tableBody = document.getElementById('carsTableBody');
+    const themeColor = document.getElementById('themeColor');
+    const carsCounter = document.getElementById('carsCounter');
+    
+    const isAdmin = {{ 'true' if is_admin else 'false' }};
+
+    // Загрузка данных по API (AJAX-логика)
+    async function loadCars() {
+        const search = searchInput.value;
+        const color = colorInput.value;
+        
+        // Исправлены косые кавычки для формирования корректного пути запроса к API
+        const url = `/api/cars?search=${encodeURIComponent(search)}&color=${encodeURIComponent(color)}`;
+        const response = await fetch(url);
+        const cars = await response.json();
+        
+        tableBody.innerHTML = '';
+        carsCounter.innerText = `Машин: ${cars.length}`;
+        
+        if(cars.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="${isAdmin ? 7 : 6}" class="text-center text-muted py-5 fw-medium">Машины с такими параметрами не найдены</td></tr>`;
+            return;
+        }
+
+        cars.forEach(car => {
+            // Полностью восстановлена HTML-разметка ячеек таблицы <tr> и <td>
+            let row = `<tr>
+                <td class="text-muted fw-semibold">#${car.car_id}</td>
+                <td class="fw-bold text-dark">${car.brand}</td>
+                <td class="fw-medium">${car.model}</td>
+                <td><span class="car-badge">${car.license_plate}</span></td>
+                <td><span class="d-inline-block rounded-circle me-2" style="width: 8px; height: 8px; background: #94a3b8;"></span>${car.color}</td>
+                <td class="text-center"><span class="badge bg-light text-secondary border px-2 py-1">ID: ${car.driver_id}</span></td>`;
+                
+            if(isAdmin) {
+                row += `<td class="text-end">
+                    <form action="/delete_car/${car.car_id}" method="POST" onsubmit="return confirm('Вы уверены, что хотите списать автомобиль с ID ${car.car_id}?');" class="d-inline">
+                        <button type="submit" class="btn btn-link text-danger text-decoration-none fw-semibold p-0 btn-sm">Удалить</button>
+                    </form>
+                </td>`;
+            }
+            row += `</tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    searchInput.addEventListener('input', loadCars);
+    colorInput.addEventListener('input', loadCars);
+
+    // Изменение цвета темы с отправкой асинхронного сохранения в сессию
+    themeColor.addEventListener('input', async (e) => {
+        const newColor = e.target.value;
+        document.documentElement.style.setProperty('--theme-primary', newColor);
+        
+        await fetch('/api/save_theme', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ color: newColor })
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', loadCars);
+</script>
+</body>
+</html>
+
