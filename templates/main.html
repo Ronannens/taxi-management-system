@@ -4,146 +4,444 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель управления | Taxi CRM</title>
-    <link href="https://jsdelivr.net" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --crm-theme: {{ theme_color }}; }
-        body { background-color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; }
-        .sidebar { background: white; border-right: 1px solid #e2e8f0; min-height: 100vh; }
-        .theme-dot { width: 24px; height: 24px; border-radius: 50%; display: inline-block; cursor: pointer; border: 2px solid transparent; }
-        .theme-dot.active { border-color: #000; }
-        .card { border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-radius: 12px; }
-        .table th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; color: #64748b; }
+        :root {
+            --crm-theme: {{ theme_color }};
+            --on-theme: #ffffff;
+            --theme-soft: color-mix(in srgb, var(--crm-theme) 10%, #ffffff);
+            --theme-mid: color-mix(in srgb, var(--crm-theme) 22%, #ffffff);
+            --theme-deep: color-mix(in srgb, var(--crm-theme) 60%, #000000);
+            --ink: #0f172a;
+            --muted: #64748b;
+            --line: #e8ecf3;
+            --surface: #ffffff;
+            --bg: #f4f6fb;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background:
+                radial-gradient(900px 420px at 100% -5%, color-mix(in srgb, var(--crm-theme) 12%, transparent), transparent 65%),
+                var(--bg);
+            font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+            color: var(--ink);
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3, h4, h5, h6, .display-font { font-family: 'Unbounded', 'Manrope', sans-serif; letter-spacing: -0.01em; }
+
+        .sidebar {
+            background: var(--surface);
+            border-right: 1px solid var(--line);
+            min-height: 100vh;
+        }
+        @media (min-width: 768px) {
+            .sidebar-inner { position: sticky; top: 0; height: 100vh; }
+        }
+        .brand {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 2rem;
+        }
+        .brand-mark {
+            width: 44px; height: 44px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+            background: linear-gradient(135deg, var(--crm-theme), var(--theme-deep));
+            box-shadow: 0 10px 18px -8px var(--crm-theme);
+        }
+        .brand-name { font-family: 'Unbounded', sans-serif; font-weight: 700; font-size: 1rem; line-height: 1.1; }
+        .brand-sub { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+
+        .user-card {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px; border-radius: 16px;
+            background: var(--theme-soft);
+            border: 1px solid var(--theme-mid);
+            margin-bottom: 1.8rem;
+        }
+        .avatar {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.05rem;
+            background: var(--crm-theme); color: var(--on-theme);
+            flex-shrink: 0;
+        }
+        .user-name { font-weight: 700; font-size: 0.95rem; line-height: 1.2; word-break: break-word; }
+        .role-badge {
+            display: inline-block; margin-top: 3px; padding: 2px 9px; border-radius: 99px;
+            font-size: 0.68rem; font-weight: 700; letter-spacing: .03em;
+        }
+        .role-admin { background: #fee2e2; color: #b91c1c; }
+        .role-user { background: #e0e7ff; color: #3730a3; }
+
+        .side-label {
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px;
+        }
+        .theme-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .theme-dot {
+            width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+            border: 3px solid #fff; outline: 2px solid transparent;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+            transition: transform .15s, outline-color .15s;
+        }
+        .theme-dot:hover { transform: scale(1.15); }
+        .theme-dot.active { outline-color: var(--ink); }
+        .color-picker {
+            width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%;
+            background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+            cursor: pointer; overflow: hidden; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
+            -webkit-appearance: none; appearance: none;
+        }
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; opacity: 0; }
+        .color-picker::-webkit-color-swatch { border: 0; }
+        .color-picker::-moz-color-swatch { border: 0; opacity: 0; }
+
+        .sidebar-inner { overflow-y: auto; }
+        .bulk-box {
+            padding: 14px; border-radius: 16px;
+            background: var(--theme-soft); border: 1px solid var(--theme-mid);
+        }
+        .bulk-label { display: block; font-size: .74rem; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+        .bulk-box .form-select {
+            border-radius: 12px; border: 1.5px solid #e2e8f0; font-weight: 600; font-size: .85rem;
+        }
+        .bulk-box .form-select:focus {
+            border-color: var(--crm-theme);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--crm-theme) 18%, transparent);
+        }
+        .bulk-box .btn-accent { padding: .55rem .8rem; }
+        .btn-logout {
+            display: block; text-align: center; padding: 0.7rem 1rem; border-radius: 12px;
+            font-weight: 700; font-size: 0.9rem; text-decoration: none;
+            color: #dc2626; background: #fef2f2; border: 1px solid #fecaca;
+            transition: background .15s, color .15s;
+        }
+        .btn-logout:hover { background: #dc2626; color: #fff; }
+
+        .hero {
+            position: relative; overflow: hidden;
+            border-radius: 26px; padding: 2rem 2.2rem; margin-bottom: 1.5rem;
+            color: var(--on-theme);
+            background: linear-gradient(125deg, var(--crm-theme), var(--theme-deep));
+            box-shadow: 0 24px 40px -24px var(--crm-theme);
+        }
+        .hero::before, .hero::after {
+            content: ''; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.12);
+        }
+        .hero::before { width: 260px; height: 260px; right: -60px; top: -110px; }
+        .hero::after { width: 160px; height: 160px; right: 120px; bottom: -90px; }
+        .hero h2 { font-size: 1.7rem; font-weight: 700; margin: 0 0 .35rem; position: relative; }
+        .hero p { margin: 0; opacity: .85; font-weight: 500; position: relative; }
+
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+            padding: 1.2rem 1.4rem; height: 100%;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+        }
+        .stat-label { font-size: 0.72rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+        .stat-value { font-family: 'Unbounded', sans-serif; font-size: 1.5rem; font-weight: 700; margin-top: 6px; }
+        .stat-value small { font-family: 'Manrope', sans-serif; font-size: .85rem; color: var(--muted); font-weight: 600; }
+
+        .panel {
+            background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+            padding: 1.5rem; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 12px 24px -20px rgba(15, 23, 42, 0.15);
+        }
+        .panel-title {
+            font-size: 0.74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 1rem;
+        }
+        .panel-heading { font-size: 1.05rem; font-weight: 700; margin: 0; }
+
+        .form-control, .input-group-text {
+            border-radius: 12px; border: 1.5px solid #e2e8f0; font-weight: 500; font-size: 0.9rem;
+        }
+        .form-control { padding: 0.6rem 0.9rem; transition: border-color .2s, box-shadow .2s; }
+        .form-control:focus {
+            border-color: var(--crm-theme);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--crm-theme) 18%, transparent);
+        }
+        .input-group > .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+        .input-group > .input-group-text { border-top-left-radius: 0; border-bottom-left-radius: 0; background: var(--theme-soft); color: var(--muted); font-weight: 700; }
+        .search-wrap { position: relative; }
+        .search-wrap .ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: .55; pointer-events: none; }
+        .search-wrap .form-control { padding-left: 2.5rem; padding-top: .75rem; padding-bottom: .75rem; }
+
+        .btn-accent {
+            border: 0; border-radius: 12px; padding: .65rem 1rem; font-weight: 700; font-size: .9rem;
+            color: var(--on-theme);
+            background: linear-gradient(135deg, var(--crm-theme), var(--theme-deep));
+            box-shadow: 0 10px 18px -12px var(--crm-theme);
+            transition: transform .15s, filter .2s;
+        }
+        .btn-accent:hover { transform: translateY(-1px); filter: brightness(1.08); color: var(--on-theme); }
+        .btn-ghost {
+            border: 1.5px solid var(--line); background: #fff; color: var(--ink);
+            border-radius: 12px; padding: .65rem 1rem; font-weight: 700; font-size: .9rem; transition: background .15s;
+        }
+        .btn-ghost:hover { background: var(--theme-soft); }
+        .form-check-input:checked { background-color: var(--crm-theme); border-color: var(--crm-theme); }
+
+        .alert {
+            border: 0; border-radius: 16px; font-weight: 600; font-size: .92rem;
+            box-shadow: 0 8px 20px -14px rgba(15, 23, 42, 0.4);
+        }
+
+        .table { --bs-table-bg: transparent; margin: 0; }
+        .table thead th {
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+            color: var(--muted); border-bottom: 1px solid var(--line); padding: .85rem .9rem; white-space: nowrap; background: transparent;
+        }
+        .table tbody td { padding: .95rem .9rem; border-bottom: 1px solid #f1f4f9; vertical-align: middle; font-weight: 500; }
+        .table tbody tr { transition: background .15s; }
+        .table tbody tr:hover { background: var(--theme-soft); }
+        .table tbody tr:last-child td { border-bottom: 0; }
+        .id-chip { font-weight: 800; color: var(--muted); }
+        .car-name { font-weight: 700; }
+        .plate {
+            display: inline-block; padding: 3px 10px; border-radius: 8px;
+            border: 1.5px solid #cbd5e1; background: #fff; font-family: 'Consolas', 'Menlo', monospace;
+            font-weight: 700; font-size: .85rem; letter-spacing: .06em;
+        }
+        .driver-chip {
+            display: inline-block; padding: 3px 11px; border-radius: 99px;
+            background: #f1f5f9; color: #475569; font-size: .78rem; font-weight: 700;
+        }
+        .price-tag {
+            display: inline-block; padding: 5px 14px; border-radius: 99px;
+            background: var(--theme-soft); color: var(--theme-deep); border: 1px solid var(--theme-mid);
+            font-weight: 800; white-space: nowrap;
+        }
+        .tariff-edit { display: flex; align-items: center; gap: 6px; min-width: 175px; }
+        .tariff-edit .input-group { flex: 1; flex-wrap: nowrap; }
+        .tariff-edit .form-control { min-width: 80px; font-weight: 700; padding: .4rem .65rem; }
+        .tariff-edit .input-group-text { padding: .4rem .65rem; }
+        .btn-save {
+            width: 36px; height: 36px; flex-shrink: 0; border: 0; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #e2e8f0; color: #94a3b8; font-weight: 800; transition: all .15s; cursor: default;
+        }
+        .btn-save.dirty { background: #16a34a; color: #fff; cursor: pointer; box-shadow: 0 8px 14px -8px #16a34a; }
+        .btn-save.dirty:hover { filter: brightness(1.08); }
+        .btn-save:disabled { opacity: .6; }
+        .btn-del {
+            border: 0; background: #fef2f2; color: #dc2626; font-weight: 700; font-size: .8rem;
+            padding: .4rem .85rem; border-radius: 10px; transition: background .15s, color .15s;
+        }
+        .btn-del:hover { background: #dc2626; color: #fff; }
+        .counter-pill {
+            padding: 6px 16px; border-radius: 99px; font-size: .8rem; font-weight: 800;
+            background: var(--crm-theme); color: var(--on-theme);
+        }
+        .empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-weight: 600; }
+        .empty-state .big { font-size: 2.4rem; display: block; margin-bottom: 6px; }
+
+        .toast-stack { position: fixed; right: 20px; bottom: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .toast-item {
+            min-width: 240px; max-width: 340px; padding: 12px 18px; border-radius: 14px;
+            background: var(--ink); color: #fff; font-weight: 600; font-size: .88rem;
+            box-shadow: 0 18px 30px -12px rgba(15, 23, 42, 0.5);
+            animation: toastIn .25s ease-out; border-left: 5px solid #22c55e;
+        }
+        .toast-item.error { border-left-color: #ef4444; }
+        .toast-item.hide { opacity: 0; transform: translateY(8px); transition: all .3s; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
 <body>
-    <!-- Метаданные для JavaScript без использования Jinja внутри <script> -->
     <div id="admin-metadata" data-is-admin="{% if is_admin %}true{% else %}false{% endif %}" style="display: none;"></div>
 
     <div class="container-fluid">
         <div class="row">
-            <!-- Боковая панель -->
-            <div class="col-md-3 col-lg-2 sidebar p-4 d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex align-items-center gap-2 mb-4">
-                        <span class="fs-4">👋</span>
-                        <div>
-                            <h6 class="mb-0 fw-bold">{{ user }}</h6>
-                            <span class="badge {% if is_admin %}bg-danger{% else %}bg-primary{% endif %} text-white" style="font-size: 0.7rem;">
-                                {% if is_admin %}Администратор{% else %}Пассажир{% endif %}
-                            </span>
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="sidebar-inner p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="brand">
+                            <div class="brand-mark">🚖</div>
+                            <div>
+                                <div class="brand-name">Taxi CRM</div>
+                                <div class="brand-sub">Premium</div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted mb-2">Тема интерфейса:</label>
-                        <div class="d-flex gap-2">
-                            <span class="theme-dot" style="background: #6366f1;" onclick="changeColor('#6366f1')"></span>
-                            <span class="theme-dot" style="background: #10b981;" onclick="changeColor('#10b981')"></span>
-                            <span class="theme-dot" style="background: #ef4444;" onclick="changeColor('#ef4444')"></span>
-                            <span class="theme-dot" style="background: #f59e0b;" onclick="changeColor('#f59e0b')"></span>
-                            <span class="theme-dot" style="background: #1e293b;" onclick="changeColor('#1e293b')"></span>
+
+                        <div class="user-card">
+                            <div class="avatar">{{ (user[:1] or '?')|upper }}</div>
+                            <div>
+                                <div class="user-name">{{ user }}</div>
+                                <span class="role-badge {% if is_admin %}role-admin{% else %}role-user{% endif %}">
+                                    {% if is_admin %}Администратор{% else %}Пассажир{% endif %}
+                                </span>
+                            </div>
                         </div>
+
+                        <div class="mb-4">
+                            <div class="side-label">Тема интерфейса</div>
+                            <div class="theme-row">
+                                <span class="theme-dot" data-color="#6366f1" style="background: #6366f1;" onclick="changeColor('#6366f1')"></span>
+                                <span class="theme-dot" data-color="#10b981" style="background: #10b981;" onclick="changeColor('#10b981')"></span>
+                                <span class="theme-dot" data-color="#ef4444" style="background: #ef4444;" onclick="changeColor('#ef4444')"></span>
+                                <span class="theme-dot" data-color="#f59e0b" style="background: #f59e0b;" onclick="changeColor('#f59e0b')"></span>
+                                <span class="theme-dot" data-color="#1e293b" style="background: #1e293b;" onclick="changeColor('#1e293b')"></span>
+                                <input type="color" class="color-picker" id="customColor" value="#6366f1" title="Свой цвет">
+                            </div>
+                        </div>
+
+                        {% if is_admin %}
+                        <div class="mb-2">
+                            <div class="side-label">Массовая смена тарифа</div>
+                            <div class="bulk-box">
+                                <label class="bulk-label" for="bulkOperator">Если тариф</label>
+                                <select id="bulkOperator" class="form-select form-select-sm mb-2">
+                                    <option value="lt">меньше</option>
+                                    <option value="lte">меньше или равен</option>
+                                    <option value="eq">равен</option>
+                                    <option value="gte">больше или равен</option>
+                                    <option value="gt">больше</option>
+                                    <option value="all">любой (все машины)</option>
+                                </select>
+                                <div id="bulkThresholdWrap">
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="number" id="bulkThreshold" min="0" max="99999999.99" step="0.01" class="form-control" placeholder="Например, 200">
+                                        <span class="input-group-text">₽</span>
+                                    </div>
+                                </div>
+                                <label class="bulk-label" for="bulkNewTariff">Установить тариф</label>
+                                <div class="input-group input-group-sm mb-2">
+                                    <input type="number" id="bulkNewTariff" min="0" max="99999999.99" step="0.01" class="form-control" placeholder="Например, 500">
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                                <button type="button" class="btn-accent w-100" id="bulkApplyBtn" onclick="applyBulkTariff()">Применить</button>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
+
+                    <a href="{{ url_for('logout') }}" class="btn-logout mt-4">Выйти</a>
                 </div>
-                
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 fw-semibold">Выйти</a>
             </div>
 
-            <!-- Главный контент -->
             <div class="col-md-9 col-lg-10 p-4 p-md-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold m-0 text-dark">🚖 Taxi CRM Premium</h2>
-                    <div style="width: 8px; height: 32px; background-color: var(--crm-theme); border-radius: 4px;"></div>
+                <div class="hero">
+                    <h2>Панель автопарка</h2>
+                    <p>Автомобили, водители, тарифы и учётные записи — в одном месте</p>
                 </div>
 
-                <!-- Уведомления -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                   {% if messages %}
                     {% for category, message in messages %}
-                      <div class="alert alert-{{ category }} alert-dismissible fade show mb-4 card" role="alert">
-                        <div class="card-body p-1 d-flex align-items-center gap-2">
-                            <span>✨</span> <strong>{{ message }}</strong>
-                        </div>
+                      <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
                       </div>
                     {% endfor %}
                   {% endif %}
                 {% endwith %}
 
-                <!-- Фильтры и Поиск -->
-                <div class="card p-4 mb-4">
-                    <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.75rem;">Поиск и Фильтры</h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <input type="text" id="searchInput" class="form-control" placeholder="Марка / Модель" oninput="loadCars()">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Автомобилей</div>
+                            <div class="stat-value" id="statCount">0</div>
                         </div>
-                        <div class="col-md-6">
-                            <input type="text" id="colorInput" class="form-control" placeholder="Цвет кузова" oninput="loadCars()">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Средний тариф</div>
+                            <div class="stat-value" id="statAvg">—</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-label">Диапазон тарифов</div>
+                            <div class="stat-value" id="statRange">—</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Функции Администратора -->
+                <div class="panel mb-4">
+                    <div class="panel-title">Поиск и фильтры</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="search-wrap">
+                                <span class="ico">🔍</span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Марка / Модель" oninput="loadCars()">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="search-wrap">
+                                <span class="ico">🎨</span>
+                                <input type="text" id="colorInput" class="form-control" placeholder="Цвет кузова" oninput="loadCars()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {% if is_admin %}
                 <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card p-4 h-100">
-                            <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.75rem;">➕ Добавить автомобиль</h6>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="panel h-100">
+                            <div class="panel-title">➕ Добавить автомобиль</div>
                             <form action="{{ url_for('add_car') }}" method="POST">
-                                <input type="text" name="brand" class="form-control form-control-sm mb-2" placeholder="Марка (напр. Kia)" required>
-                                <input type="text" name="model" class="form-control form-control-sm mb-2" placeholder="Модель (напр. Rio)" required>
-                                <input type="text" name="plate" class="form-control form-control-sm mb-2" placeholder="Гос. номер" required>
-                                <input type="text" name="color" class="form-control form-control-sm mb-2" placeholder="Цвет" required>
-                                <input type="number" name="driver_id" class="form-control form-control-sm mb-3" placeholder="ID Водителя" required>
-                                <button type="submit" class="btn btn-dark btn-sm w-100 fw-semibold">Добавить авто</button>
+                                <input type="text" name="brand" class="form-control mb-2" placeholder="Марка (напр. Kia)" required>
+                                <input type="text" name="model" class="form-control mb-2" placeholder="Модель (напр. Rio)" required>
+                                <input type="text" name="plate" class="form-control mb-2" placeholder="Гос. номер" required>
+                                <input type="text" name="color" class="form-control mb-2" placeholder="Цвет" required>
+                                <input type="number" name="driver_id" min="1" step="1" class="form-control mb-2" placeholder="ID Водителя" required>
+                                <div class="input-group mb-3">
+                                    <input type="number" name="tariff" min="0" max="99999999.99" step="0.01" class="form-control" placeholder="Тариф (цена поездки)" required>
+                                    <span class="input-group-text">₽</span>
+                                </div>
+                                <button type="submit" class="btn-accent w-100">Добавить авто</button>
                             </form>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card p-4 h-100">
-                            <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.75rem;">🚖 Новый водитель</h6>
+                    <div class="col-xl-4 col-md-6">
+                        <div class="panel h-100">
+                            <div class="panel-title">🚖 Новый водитель</div>
                             <form action="{{ url_for('add_driver') }}" method="POST">
-                                <input type="text" name="name" class="form-control form-control-sm mb-2" placeholder="ФИО Водителя" required>
-                                <input type="text" name="phone" class="form-control form-control-sm mb-2" placeholder="Телефон" required>
-                                <input type="text" name="license" class="form-control form-control-sm mb-2" placeholder="Номер лицензии" required>
-                                <input type="text" name="rating" class="form-control form-control-sm mb-3" value="5.00" placeholder="Рейтинг" required>
-                                <button type="submit" class="btn btn-success btn-sm w-100 fw-semibold">Оформить водителя</button>
+                                <input type="text" name="name" class="form-control mb-2" placeholder="ФИО Водителя" required>
+                                <input type="text" name="phone" class="form-control mb-2" placeholder="Телефон" required>
+                                <input type="text" name="license" class="form-control mb-2" placeholder="Номер лицензии" required>
+                                <input type="text" name="rating" class="form-control mb-3" value="5.00" placeholder="Рейтинг" required>
+                                <button type="submit" class="btn-accent w-100">Оформить водителя</button>
                             </form>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card p-4 h-100">
-                            <h6 class="fw-bold text-muted mb-3 text-uppercase" style="font-size: 0.75rem;">👤 Регистрация пассажира</h6>
+                    <div class="col-xl-4 col-md-12">
+                        <div class="panel h-100">
+                            <div class="panel-title">👤 Регистрация пассажира</div>
                             <form action="{{ url_for('add_passenger') }}" method="POST">
-                                <input type="text" name="name" class="form-control form-control-sm mb-2" placeholder="Имя пассажира" required>
-                                <input type="text" name="phone" class="form-control form-control-sm mb-2" placeholder="Телефон" required>
-                                <input type="email" name="email" class="form-control form-control-sm mb-2" placeholder="Email (необязательно)">
+                                <input type="text" name="name" class="form-control mb-2" placeholder="Имя пассажира" required>
+                                <input type="text" name="phone" class="form-control mb-2" placeholder="Телефон" required>
+                                <input type="email" name="email" class="form-control mb-2" placeholder="Email (необязательно)">
                                 <div class="form-check form-switch mb-3">
                                     <input class="form-check-input" type="checkbox" name="is_admin" id="isAdminCheck">
-                                    <label class="form-check-label small text-muted" for="isAdminCheck">Права админа</label>
+                                    <label class="form-check-label small text-muted fw-semibold" for="isAdminCheck">Права админа</label>
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">Создать аккаунт</button>
+                                <button type="submit" class="btn-accent w-100">Создать аккаунт</button>
                             </form>
                         </div>
                     </div>
                 </div>
                 {% else %}
-                <div class="alert alert-secondary card p-3 mb-4 d-flex flex-row align-items-center gap-3">
-                    <span class="fs-4">🔒</span>
+                <div class="panel mb-4 d-flex flex-row align-items-center gap-3">
+                    <span class="fs-3">🔒</span>
                     <div>
-                        <h6 class="m-0 fw-bold text-secondary">Режим клиента</h6>
-                        <small class="text-muted">Функции создания и удаления записей автопарка ограничены администрацией.</small>
+                        <div class="fw-bold">Режим клиента</div>
+                        <small class="text-muted fw-semibold">Функции создания и удаления записей автопарка, а также изменение тарифов ограничены администрацией.</small>
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Таблица автопарка -->
-                <div class="card p-4">
+                <div class="panel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold m-0 text-dark">Актуальный статус автопарка</h5>
-                        <span class="badge bg-dark rounded-pill px-3 py-2" id="carCounter">Машин: 0</span>
+                        <h5 class="panel-heading">Актуальный статус автопарка</h5>
+                        <span class="counter-pill" id="carCounter">Машин: 0</span>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle m-0">
+                        <table class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -151,66 +449,244 @@
                                     <th>Модель</th>
                                     <th>Государственный номер</th>
                                     <th>Цвет кузова</th>
-                                    <th>Идентификатор водителя</th>
+                                    <th>Водитель</th>
+                                    <th>Тариф</th>
                                     {% if is_admin %}
                                     <th class="text-end">Управление</th>
                                     {% endif %}
                                 </tr>
                             </thead>
-                            <tbody id="carsTableBody">
-                                <!-- Данные загружаются через API -->
-                            </tbody>
+                            <tbody id="carsTableBody"></tbody>
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
+    <div class="toast-stack" id="toastStack"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        var IS_ADMIN = document.getElementById('admin-metadata').getAttribute('data-is-admin') === 'true';
+        var carsData = [];
+        var requestCounter = 0;
+
+        function esc(value) {
+            return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function fmtMoney(n) {
+            return Number(n).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+        }
+
+        function showToast(text, isError) {
+            var stack = document.getElementById('toastStack');
+            var el = document.createElement('div');
+            el.className = 'toast-item' + (isError ? ' error' : '');
+            el.textContent = text;
+            stack.appendChild(el);
+            setTimeout(function () {
+                el.classList.add('hide');
+                setTimeout(function () { if (el.parentNode) { el.parentNode.removeChild(el); } }, 320);
+            }, 2800);
+        }
+
+        function updateStats() {
+            document.getElementById('statCount').innerText = carsData.length;
+            document.getElementById('carCounter').innerText = 'Машин: ' + carsData.length;
+            var avgEl = document.getElementById('statAvg');
+            var rangeEl = document.getElementById('statRange');
+            if (carsData.length === 0) {
+                avgEl.innerText = '—';
+                rangeEl.innerText = '—';
+                return;
+            }
+            var sum = 0, min = Infinity, max = -Infinity;
+            carsData.forEach(function (c) {
+                var t = Number(c.tariff) || 0;
+                sum += t;
+                if (t < min) { min = t; }
+                if (t > max) { max = t; }
+            });
+            avgEl.innerText = fmtMoney(sum / carsData.length);
+            rangeEl.innerHTML = '<small>' + esc(fmtMoney(min)) + ' – ' + esc(fmtMoney(max)) + '</small>';
+        }
+
+        function renderCars() {
+            var tbody = document.getElementById('carsTableBody');
+            tbody.innerHTML = '';
+
+            if (carsData.length === 0) {
+                var cols = IS_ADMIN ? 8 : 7;
+                tbody.innerHTML = '<tr><td colspan="' + cols + '"><div class="empty-state"><span class="big">🚕</span>В автопарке пока нет автомобилей или ничего не найдено</div></td></tr>';
+                return;
+            }
+
+            carsData.forEach(function (car) {
+                var tr = document.createElement('tr');
+                var tariff = Number(car.tariff) || 0;
+
+                var html = '<td class="id-chip">#' + esc(car.car_id) + '</td>' +
+                           '<td class="car-name">' + esc(car.brand) + '</td>' +
+                           '<td>' + esc(car.model) + '</td>' +
+                           '<td><span class="plate">' + esc(car.license_plate) + '</span></td>' +
+                           '<td>' + esc(car.color) + '</td>' +
+                           '<td><span class="driver-chip">ID: ' + esc(car.driver_id) + '</span></td>';
+
+                if (IS_ADMIN) {
+                    html += '<td><div class="tariff-edit">' +
+                                '<div class="input-group">' +
+                                    '<input type="number" min="0" max="99999999.99" step="0.01" class="form-control tariff-input" ' +
+                                           'data-id="' + esc(car.car_id) + '" data-original="' + tariff.toFixed(2) + '" value="' + tariff.toFixed(2) + '">' +
+                                    '<span class="input-group-text">₽</span>' +
+                                '</div>' +
+                                '<button type="button" class="btn-save" data-id="' + esc(car.car_id) + '" title="Сохранить тариф" disabled>✓</button>' +
+                            '</div></td>';
+                    html += '<td class="text-end">' +
+                                '<form action="/delete_car/' + encodeURIComponent(car.car_id) + '" method="POST" style="display:inline;" onsubmit="return confirm(\'Вы уверены, что хотите списать этот автомобиль?\');">' +
+                                    '<button type="submit" class="btn-del">Удалить</button>' +
+                                '</form>' +
+                            '</td>';
+                } else {
+                    html += '<td><span class="price-tag">' + esc(fmtMoney(tariff)) + '</span></td>';
+                }
+
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+        }
+
         function loadCars() {
             var search = document.getElementById('searchInput').value;
             var color = document.getElementById('colorInput').value;
-            var isAdmin = document.getElementById('admin-metadata').getAttribute('data-is-admin') === 'true';
             var url = '/api/cars?search=' + encodeURIComponent(search) + '&color=' + encodeURIComponent(color);
-            
+            var myRequest = ++requestCounter;
+
             fetch(url)
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    var tbody = document.getElementById('carsTableBody');
-                    document.getElementById('carCounter').innerText = 'Машин: ' + data.length;
-                    tbody.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        var cols = isAdmin ? 7 : 6;
-                        tbody.innerHTML = '<tr><td colspan="' + cols + '" class="text-center text-muted py-4">В автопарке пока нет автомобилей или ничего не найдено</td></tr>';
-                        return;
-                    }
-                    
-                    data.forEach(function(car) {
-                        var tr = document.createElement('tr');
-                        
-                        // Безопасная сборка строки через обычные кавычки и плюсы с HTML-тегами ячеек
-                        var html = '<td class="fw-bold text-secondary">#' + car.car_id + '</td>' +
-                                   '<td class="fw-semibold">' + car.brand + '</td>' +
-                                   '<td>' + car.model + '</td>' +
-                                   '<td><span class="badge bg-light text-dark border px-2 py-1 font-monospace">' + car.license_plate + '</span></td>' +
-                                   '<td>' + car.color + '</td>' +
-                                   '<td><span class="badge bg-secondary">ID: ' + car.driver_id + '</span></td>';
-                        
-                        if (isAdmin) {
-                            html += '<td class="text-end">' +
-                                        '<form action="/delete_car/' + car.car_id + '" method="POST" style="display:inline;" onsubmit="return confirm(\'Вы уверены, что хотите списать этот автомобиль?\');">' +
-                                            '<button type="submit" class="btn btn-link link-danger p-0 text-decoration-none small fw-semibold">Удалить</button>' +
-                                        '</form>' +
-                                    '</td>';
-                        }
-                        
-                        tr.innerHTML = html;
-                        tbody.appendChild(tr);
-                    });
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (myRequest !== requestCounter) { return; }
+                    carsData = Array.isArray(data) ? data : [];
+                    updateStats();
+                    renderCars();
+                })
+                .catch(function () {
+                    showToast('Не удалось загрузить данные автопарка', true);
                 });
+        }
+
+        function markDirty(input) {
+            var btn = input.closest('.tariff-edit').querySelector('.btn-save');
+            var changed = input.value.trim() !== input.getAttribute('data-original');
+            btn.classList.toggle('dirty', changed);
+            btn.disabled = !changed;
+        }
+
+        function saveTariff(input) {
+            var carId = input.getAttribute('data-id');
+            var btn = input.closest('.tariff-edit').querySelector('.btn-save');
+            var value = input.value.trim();
+            if (value === '') {
+                showToast('Введите значение тарифа', true);
+                return;
+            }
+            btn.disabled = true;
+
+            fetch('/api/update_tariff/' + encodeURIComponent(carId), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tariff: value })
+            })
+            .then(function (res) {
+                return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+            })
+            .then(function (result) {
+                if (result.ok && result.data.status === 'success') {
+                    var fixed = Number(result.data.tariff).toFixed(2);
+                    input.value = fixed;
+                    input.setAttribute('data-original', fixed);
+                    carsData.forEach(function (c) {
+                        if (String(c.car_id) === String(carId)) { c.tariff = Number(result.data.tariff); }
+                    });
+                    updateStats();
+                    markDirty(input);
+                    showToast('Тариф обновлён: ' + fmtMoney(result.data.tariff), false);
+                } else {
+                    showToast(result.data.message || 'Не удалось сохранить тариф', true);
+                    markDirty(input);
+                }
+            })
+            .catch(function () {
+                showToast('Ошибка соединения с сервером', true);
+                markDirty(input);
+            });
+        }
+
+        function applyBulkTariff() {
+            var opEl = document.getElementById('bulkOperator');
+            var thrEl = document.getElementById('bulkThreshold');
+            var newEl = document.getElementById('bulkNewTariff');
+            var btn = document.getElementById('bulkApplyBtn');
+            var operator = opEl.value;
+            var threshold = thrEl.value.trim();
+            var newTariff = newEl.value.trim();
+
+            if (operator !== 'all' && threshold === '') {
+                showToast('Укажите пороговое значение тарифа', true);
+                return;
+            }
+            if (newTariff === '') {
+                showToast('Укажите новый тариф', true);
+                return;
+            }
+
+            var condition = opEl.options[opEl.selectedIndex].text;
+            var question = operator === 'all'
+                ? 'Установить тариф ' + fmtMoney(newTariff) + ' для ВСЕХ машин автопарка?'
+                : 'Установить тариф ' + fmtMoney(newTariff) + ' для всех машин, у которых тариф ' + condition + ' ' + fmtMoney(threshold) + '?';
+            if (!confirm(question)) { return; }
+
+            btn.disabled = true;
+            fetch('/api/bulk_tariff', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operator: operator, threshold: threshold, new_tariff: newTariff })
+            })
+            .then(function (res) {
+                return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+            })
+            .then(function (result) {
+                btn.disabled = false;
+                if (result.ok && result.data.status === 'success') {
+                    showToast('Обновлено машин: ' + result.data.updated, false);
+                    loadCars();
+                } else {
+                    showToast(result.data.message || 'Не удалось обновить тарифы', true);
+                }
+            })
+            .catch(function () {
+                btn.disabled = false;
+                showToast('Ошибка соединения с сервером', true);
+            });
+        }
+
+        function readableOn(hex) {
+            var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+            var luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return luminance > 0.68 ? '#0f172a' : '#ffffff';
+        }
+
+        function applyTheme(hex) {
+            document.documentElement.style.setProperty('--crm-theme', hex);
+            document.documentElement.style.setProperty('--on-theme', readableOn(hex));
+            var dots = document.querySelectorAll('.theme-dot');
+            for (var i = 0; i < dots.length; i++) {
+                dots[i].classList.toggle('active', dots[i].getAttribute('data-color').toLowerCase() === hex.toLowerCase());
+            }
+            document.getElementById('customColor').value = hex;
         }
 
         function changeColor(hex) {
@@ -218,13 +694,44 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ color: hex })
-            }).then(function(res) {
-                if (res.ok) {
-                    document.documentElement.style.setProperty('--crm-theme', hex);
-                    location.reload();
-                }
+            }).then(function (res) {
+                if (res.ok) { applyTheme(hex); }
             });
         }
 
-        document.addEventListener("DOMContentLoaded", loadCars);
+        document.addEventListener('DOMContentLoaded', function () {
+            applyTheme(getComputedStyle(document.documentElement).getPropertyValue('--crm-theme').trim());
+
+            document.getElementById('customColor').addEventListener('change', function (e) {
+                changeColor(e.target.value);
+            });
+
+            var bulkOp = document.getElementById('bulkOperator');
+            if (bulkOp) {
+                bulkOp.addEventListener('change', function () {
+                    document.getElementById('bulkThresholdWrap').style.display = bulkOp.value === 'all' ? 'none' : '';
+                });
+            }
+
+            var tbody = document.getElementById('carsTableBody');
+            tbody.addEventListener('input', function (e) {
+                if (e.target.classList.contains('tariff-input')) { markDirty(e.target); }
+            });
+            tbody.addEventListener('keydown', function (e) {
+                if (e.target.classList.contains('tariff-input') && e.key === 'Enter') {
+                    e.preventDefault();
+                    saveTariff(e.target);
+                }
+            });
+            tbody.addEventListener('click', function (e) {
+                var btn = e.target.closest ? e.target.closest('.btn-save') : null;
+                if (btn && !btn.disabled) {
+                    saveTariff(btn.closest('.tariff-edit').querySelector('.tariff-input'));
+                }
+            });
+
+            loadCars();
+        });
     </script>
+</body>
+</html>

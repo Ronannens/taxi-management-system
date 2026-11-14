@@ -33,6 +33,7 @@ CREATE TABLE Car (
     license_plate VARCHAR(20) NOT NULL UNIQUE,
     color VARCHAR(30) NOT NULL,
     driver_id INT UNIQUE NOT NULL,
+    tariff DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     PRIMARY KEY (car_id),
     CONSTRAINT fk_car_driver FOREIGN KEY (driver_id)
         REFERENCES Driver(driver_id)

@@ -32,6 +32,7 @@ CREATE TABLE Car (
     license_plate VARCHAR(20) NOT NULL UNIQUE COMMENT 'Гос_номер',
     color VARCHAR(30) NOT NULL COMMENT 'Цвет',
     driver_id INT UNIQUE NOT NULL COMMENT 'ID_Водителя (FK)',
+    tariff DECIMAL(10, 2) NOT NULL DEFAULT 0.00 COMMENT 'Тариф (цена поездки)',
     PRIMARY KEY (car_id),
     CONSTRAINT fk_car_driver FOREIGN KEY (driver_id)
         REFERENCES Driver(driver_id)
